@@ -8,6 +8,7 @@ import { Send, User, Share2, Folder, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatMessage {
   id: string;
@@ -26,10 +27,12 @@ interface Folder {
   id: string;
   name: string;
   password: string;
+  createdBy?: string; // Adding the missing createdBy property
 }
 
 const Chat = () => {
   const { user } = useAuth();
+  const navigate = useNavigate(); // Adding the navigate hook
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -74,6 +77,7 @@ const Chat = () => {
       if (storedFolders && user) {
         try {
           const allFolders: Folder[] = JSON.parse(storedFolders);
+          // Fix: Using optional chaining to safely access createdBy property
           const userFolders = allFolders.filter(folder => folder.createdBy === user.id);
           setFolders(userFolders);
         } catch (error) {
