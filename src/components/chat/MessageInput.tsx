@@ -25,9 +25,9 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
         placeholder="Type a message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        className="flex-1"
+        className="flex-1 dark:bg-secondary/40 dark:border-secondary"
       />
-      <Button type="submit" disabled={!message.trim()}>
+      <Button type="submit" disabled={!message.trim()} className="dark:hover:bg-primary/80">
         <Send className="h-4 w-4" />
       </Button>
     </form>

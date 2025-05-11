@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import DarkModeToggle from './DarkModeToggle';
 
 const NavItem = ({ 
   icon: Icon, 
@@ -84,6 +85,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 </div>
                 <span className="font-bold text-xl">LockBox</span>
               </Link>
+              <DarkModeToggle />
             </div>
           </div>
           
