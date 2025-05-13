@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,6 +61,9 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
+  // Extract display name logic - prioritize username
+  const displayName = user?.username || user?.email?.split('@')[0] || 'User';
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -108,7 +110,7 @@ const Dashboard = () => {
       <div className="container px-4 py-6 mx-auto max-w-7xl">
         {/* Welcome Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1">Welcome, {user?.username || user?.email.split('@')[0]}!</h1>
+          <h1 className="text-3xl font-bold mb-1">Welcome, {displayName}!</h1>
           <p className="text-muted-foreground">
             Here's an overview of your secured folders and files.
           </p>

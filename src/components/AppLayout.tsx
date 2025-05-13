@@ -58,6 +58,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     { icon: MessageCircle, label: 'Global Chat', path: '/chat' },
   ];
 
+  // Extract display name logic - prioritize username if available
+  const displayName = user?.username || user?.email?.split('@')[0] || 'User';
+
   return (
     <div className="flex h-screen bg-background">
       {/* Mobile menu button */}
@@ -96,7 +99,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 <User className="text-secondary-foreground h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{user?.username || user?.email.split('@')[0]}</p>
+                <p className="font-medium truncate">{displayName}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
             </div>
