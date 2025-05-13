@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, Shield, Globe, MessageCircle, Upload } from "lucide-react";
+import DarkModeToggle from "@/components/DarkModeToggle";
 
 const HeroFeatureCard = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
   <Card className="border border-border/40 bg-background/60 backdrop-blur-sm card-hover animate-fade-in">
@@ -24,8 +25,13 @@ const HeroFeatureCard = ({ icon: Icon, title, description }: { icon: any; title:
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 bg-mesh">
+      {/* Navigation */}
+      <div className="container mx-auto px-4 py-4 flex justify-end">
+        <DarkModeToggle className="bg-background/60 hover:bg-background/80" />
+      </div>
+      
       {/* Hero Section */}
-      <div className="container mx-auto px-4 pt-20 pb-16 text-center">
+      <div className="container mx-auto px-4 pt-12 pb-16 text-center">
         <div className="inline-block mb-6 bg-primary/10 backdrop-blur-sm py-2 px-4 rounded-full">
           <p className="text-sm font-medium text-primary">Secure File Sharing Made Simple</p>
         </div>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import DarkModeToggle from "@/components/DarkModeToggle";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -59,7 +60,10 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-secondary/20 bg-mesh p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 relative">
+          <div className="absolute right-0 top-0">
+            <DarkModeToggle className="bg-background/60 hover:bg-background/80" />
+          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-lockbox-700 to-primary bg-clip-text text-transparent">
             LockBox Global
           </h1>
