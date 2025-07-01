@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import DarkModeToggle from "@/components/DarkModeToggle";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -26,30 +28,17 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // This is a mock login - in a real app, this would call your API
-      console.log("Login attempt:", formData);
+      const { error } = await login(formData.email, formData.password);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful login for demo purposes
-      // In a real app, this would verify credentials with your backend
-      if (formData.email && formData.password.length >= 6) {
-        // Store user in localStorage (temporary - would use JWT in production)
-        localStorage.setItem("user", JSON.stringify({
-          id: Math.random().toString(36).substr(2, 9),
-          email: formData.email,
-          username: formData.email.split('@')[0]
-        }));
-        
+      if (error) {
+        toast.error(error.message || "Login failed");
+      } else {
         toast.success("Login successful!");
         navigate("/dashboard");
-      } else {
-        toast.error("Invalid credentials");
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }

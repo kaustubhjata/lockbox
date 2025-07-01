@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import DarkModeToggle from "@/components/DarkModeToggle";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
@@ -31,27 +33,25 @@ const Register = () => {
       return;
     }
     
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      // This is a mock registration - in a real app, this would call your API
-      console.log("Registration details:", formData);
+      const { error } = await register(formData.email, formData.password, formData.username);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store user in localStorage (temporary - would use JWT in production)
-      localStorage.setItem("user", JSON.stringify({
-        id: Math.random().toString(36).substr(2, 9),
-        username: formData.username,
-        email: formData.email
-      }));
-      
-      toast.success("Registration successful!");
-      navigate("/dashboard");
+      if (error) {
+        toast.error(error.message || "Registration failed");
+      } else {
+        toast.success("Registration successful! Please check your email to verify your account.");
+        navigate("/login");
+      }
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error("Registration failed. Please try again.");
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +111,7 @@ const Register = () => {
                   type="password"
                   placeholder="••••••••"
                   required
-                  minLength={8}
+                  minLength={6}
                   value={formData.password}
                   onChange={handleChange}
                 />
@@ -124,7 +124,7 @@ const Register = () => {
                   type="password"
                   placeholder="••••••••"
                   required
-                  minLength={8}
+                  minLength={6}
                   value={formData.confirmPassword}
                   onChange={handleChange}
                 />

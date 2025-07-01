@@ -44,10 +44,14 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Logged out successfully");
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate('/');
+    } catch (error) {
+      toast.error("Failed to log out");
+    }
   };
 
   const navItems = [
