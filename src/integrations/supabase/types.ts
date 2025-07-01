@@ -9,6 +9,71 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      files: {
+        Row: {
+          created_at: string
+          folder_id: string
+          id: string
+          name: string
+          size: number
+          storage_path: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          folder_id: string
+          id?: string
+          name: string
+          size: number
+          storage_path: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          folder_id?: string
+          id?: string
+          name?: string
+          size?: number
+          storage_path?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          password: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          password: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          password?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

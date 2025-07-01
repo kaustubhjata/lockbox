@@ -10,26 +10,30 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FileItem {
+  id: string;
   name: string;
   size: number;
   type: string;
-  url?: string;
+  storage_path: string;
 }
 
 interface Folder {
   id: string;
   name: string;
   password: string;
+  created_at: string;
+  created_by: string;
   files: FileItem[];
-  createdAt: string;
-  createdBy: string;
 }
 
 const FolderView = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [folder, setFolder] = useState<Folder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -38,36 +42,53 @@ const FolderView = () => {
 
   useEffect(() => {
     const fetchFolder = async () => {
+      if (!folderId) return;
+      
       try {
-        // In a real app, this would be an API call
-        const storedFolders = localStorage.getItem('folders');
-        const folders: Folder[] = storedFolders ? JSON.parse(storedFolders) : [];
-        
-        const foundFolder = folders.find(f => f.id === folderId);
-        
-        if (!foundFolder) {
+        const { data: folderData, error: folderError } = await supabase
+          .from('folders')
+          .select(`
+            id,
+            name,
+            password,
+            created_at,
+            created_by,
+            files (
+              id,
+              name,
+              size,
+              type,
+              storage_path
+            )
+          `)
+          .eq('id', folderId)
+          .single();
+
+        if (folderError) throw folderError;
+
+        if (!folderData) {
           toast.error("Folder not found");
           navigate('/dashboard');
           return;
         }
         
-        setFolder(foundFolder);
+        setFolder(folderData as Folder);
         
         // Check if user is the creator of the folder
-        const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
-        if (foundFolder.createdBy === userId) {
+        if (user && folderData.created_by === user.id) {
           setAuthenticated(true);
         }
       } catch (error) {
         console.error('Error fetching folder:', error);
         toast.error('Failed to load folder');
+        navigate('/dashboard');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFolder();
-  }, [folderId, navigate]);
+  }, [folderId, navigate, user]);
 
   const handleAuthenticate = () => {
     if (folder && password === folder.password) {
@@ -87,6 +108,28 @@ const FolderView = () => {
     }).catch(() => {
       toast.error('Failed to copy folder details');
     });
+  };
+
+  const downloadFile = async (file: FileItem) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('folder-files')
+        .download(file.storage_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('Failed to download file');
+    }
   };
 
   const getFileIcon = (type: string) => {
@@ -149,7 +192,7 @@ const FolderView = () => {
               <h1 className="text-2xl md:text-3xl font-bold">{folder.name}</h1>
             </div>
             <p className="text-sm text-muted-foreground pl-10">
-              {folder.files.length} files • Created on {new Date(folder.createdAt).toLocaleDateString()}
+              {folder.files.length} files • Created on {new Date(folder.created_at).toLocaleDateString()}
             </p>
           </div>
           
@@ -228,10 +271,7 @@ const FolderView = () => {
                         variant="ghost" 
                         size="sm" 
                         className="flex items-center gap-1"
-                        onClick={() => {
-                          if (file.url) window.open(file.url, '_blank');
-                          else toast.info("This is a demo - downloads don't work in this prototype");
-                        }}
+                        onClick={() => downloadFile(file)}
                       >
                         <Download className="h-4 w-4" />
                         <span className="hidden sm:inline">Download</span>
@@ -259,6 +299,7 @@ const FolderView = () => {
                 placeholder="Enter folder password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAuthenticate()}
               />
               <Button className="w-full" onClick={handleAuthenticate}>
                 Access Folder

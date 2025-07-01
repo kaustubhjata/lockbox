@@ -7,43 +7,56 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Folder, Search, FolderPlus, Eye, Copy, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface Folder {
+interface FolderWithFiles {
   id: string;
   name: string;
   password: string;
-  files: {
-    name: string;
-    size: number;
-    type: string;
-    url?: string;
-  }[];
-  createdAt: string;
-  createdBy: string;
+  created_at: string;
+  created_by: string;
+  fileCount: number;
 }
 
 const MyFolders = () => {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [filteredFolders, setFilteredFolders] = useState<Folder[]>([]);
+  const { user } = useAuth();
+  const [folders, setFolders] = useState<FolderWithFiles[]>([]);
+  const [filteredFolders, setFilteredFolders] = useState<FolderWithFiles[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchFolders = async () => {
+      if (!user) return;
+      
       try {
-        // In a real app, this would be an API call
-        // For now, we're using localStorage
-        const storedFolders = localStorage.getItem('folders');
-        const parsedFolders = storedFolders ? JSON.parse(storedFolders) : [];
-        
-        // Filter to only show the current user's folders
-        const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
-        const userFolders = parsedFolders.filter((folder: Folder) => folder.createdBy === userId);
-        
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
-        
-        setFolders(userFolders);
-        setFilteredFolders(userFolders);
+        const { data: foldersData, error: foldersError } = await supabase
+          .from('folders')
+          .select(`
+            id,
+            name,
+            password,
+            created_at,
+            created_by,
+            files!inner(id)
+          `)
+          .eq('created_by', user.id)
+          .order('created_at', { ascending: false });
+
+        if (foldersError) throw foldersError;
+
+        const foldersWithFileCount = foldersData?.map(folder => ({
+          id: folder.id,
+          name: folder.name,
+          password: folder.password,
+          created_at: folder.created_at,
+          created_by: folder.created_by,
+          fileCount: folder.files?.length || 0
+        })) || [];
+
+        setFolders(foldersWithFileCount);
+        setFilteredFolders(foldersWithFileCount);
       } catch (error) {
         console.error('Error fetching folders:', error);
         toast.error('Failed to load folders');
@@ -53,7 +66,7 @@ const MyFolders = () => {
     };
 
     fetchFolders();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -74,7 +87,7 @@ const MyFolders = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const copyFolderDetails = (folder: Folder) => {
+  const copyFolderDetails = (folder: FolderWithFiles) => {
     const text = `Folder: ${folder.name}\nPassword: ${folder.password}\n\nAccess this folder on LockBox Global!`;
     navigator.clipboard.writeText(text).then(() => {
       toast.success('Folder details copied to clipboard');
@@ -143,27 +156,12 @@ const MyFolders = () => {
                     </CardTitle>
                   </div>
                   <CardDescription>
-                    Created on {formatDate(folder.createdAt)}
+                    Created on {formatDate(folder.created_at)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm">
-                    <p><strong>{folder.files.length}</strong> files</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {folder.files.slice(0, 3).map((file, index) => (
-                        <div 
-                          key={index} 
-                          className="text-xs bg-secondary px-2 py-1 rounded-full whitespace-nowrap"
-                        >
-                          {file.name.length > 15 ? `${file.name.substring(0, 12)}...` : file.name}
-                        </div>
-                      ))}
-                      {folder.files.length > 3 && (
-                        <div className="text-xs bg-secondary px-2 py-1 rounded-full">
-                          +{folder.files.length - 3} more
-                        </div>
-                      )}
-                    </div>
+                    <p><strong>{folder.fileCount}</strong> files</p>
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2">

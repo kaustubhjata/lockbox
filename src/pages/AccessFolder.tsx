@@ -8,12 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Lock, Key, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Folder {
-  id: string;
-  name: string;
-  password: string;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 const AccessFolder = () => {
   const navigate = useNavigate();
@@ -33,13 +28,15 @@ const AccessFolder = () => {
     setIsLoading(true);
     
     try {
-      // In a real app, this would be an API call
-      // Here we're using localStorage for the demo
-      const storedFolders = localStorage.getItem('folders');
-      const folders: Folder[] = storedFolders ? JSON.parse(storedFolders) : [];
-      
       // Find folder by name and check password
-      const folder = folders.find(f => f.name.toLowerCase() === folderData.name.toLowerCase());
+      const { data: folders, error } = await supabase
+        .from('folders')
+        .select('id, name, password')
+        .ilike('name', folderData.name);
+
+      if (error) throw error;
+
+      const folder = folders?.find(f => f.name.toLowerCase() === folderData.name.toLowerCase());
       
       if (!folder) {
         toast.error("Folder not found");

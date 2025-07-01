@@ -8,9 +8,12 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { FolderPlus, UploadCloud, Shield } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CreateFolder = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [folderData, setFolderData] = useState({
     name: '',
@@ -38,6 +41,11 @@ const CreateFolder = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error("You must be logged in to create folders");
+      return;
+    }
+    
     if (!folderData.name.trim()) {
       toast.error("Please enter a folder name");
       return;
@@ -61,32 +69,49 @@ const CreateFolder = () => {
     setIsLoading(true);
     
     try {
-      // This would be an API call in a real application
-      console.log("Creating folder:", folderData);
-      console.log("Files to upload:", files);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store in localStorage for demo purposes
-      const existingFolders = JSON.parse(localStorage.getItem('folders') || '[]');
-      const newFolder = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: folderData.name,
-        password: folderData.password, // In real app, this would be hashed
-        files: files.map(file => ({ 
-          name: file.name, 
-          size: file.size, 
+      // Create folder in database
+      const { data: folder, error: folderError } = await supabase
+        .from('folders')
+        .insert({
+          name: folderData.name,
+          password: folderData.password,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (folderError) throw folderError;
+
+      // Upload files to storage and create file records
+      const fileRecords = [];
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${folder.id}/${Date.now()}.${fileExt}`;
+        
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from('folder-files')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        // Create file record
+        fileRecords.push({
+          folder_id: folder.id,
+          name: file.name,
+          size: file.size,
           type: file.type,
-          url: URL.createObjectURL(file) // For demo only, real app would upload and encrypt
-        })),
-        createdAt: new Date().toISOString(),
-        createdBy: JSON.parse(localStorage.getItem('user') || '{}').id
-      };
-      
-      existingFolders.push(newFolder);
-      localStorage.setItem('folders', JSON.stringify(existingFolders));
-      
+          storage_path: fileName
+        });
+      }
+
+      // Insert file records
+      const { error: filesError } = await supabase
+        .from('files')
+        .insert(fileRecords);
+
+      if (filesError) throw filesError;
+
       toast.success("Folder created successfully!");
       navigate("/my-folders");
     } catch (error) {
