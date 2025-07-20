@@ -27,6 +27,7 @@ interface Folder {
   password: string;
   created_at: string;
   created_by: string;
+  is_public: boolean;
   files: FileItem[];
 }
 
@@ -53,6 +54,7 @@ const FolderView = () => {
             password,
             created_at,
             created_by,
+            is_public,
             files (
               id,
               name,
@@ -71,11 +73,21 @@ const FolderView = () => {
           navigate('/dashboard');
           return;
         }
+
+        // Check if user has access to this folder
+        const isCreator = user && folderData.created_by === user.id;
+        const canAccess = folderData.is_public || isCreator;
+        
+        if (!canAccess) {
+          toast.error("This folder is private and you don't have access");
+          navigate('/dashboard');
+          return;
+        }
         
         setFolder(folderData as Folder);
         
-        // Check if user is the creator of the folder
-        if (user && folderData.created_by === user.id) {
+        // Auto-authenticate if user is the creator
+        if (isCreator) {
           setAuthenticated(true);
         }
       } catch (error) {

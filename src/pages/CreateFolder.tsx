@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { FolderPlus, UploadCloud, Shield } from 'lucide-react';
+import { FolderPlus, UploadCloud, Shield, Lock, Globe } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +21,7 @@ const CreateFolder = () => {
     password: '',
     confirmPassword: '',
   });
+  const [isPublic, setIsPublic] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +77,8 @@ const CreateFolder = () => {
         .insert({
           name: folderData.name,
           password: folderData.password,
-          created_by: user.id
+          created_by: user.id,
+          is_public: isPublic
         })
         .select()
         .single();
@@ -189,6 +192,27 @@ const CreateFolder = () => {
               <p className="text-sm text-muted-foreground">
                 This password will be required to access the folder's contents
               </p>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {isPublic ? <Globe className="h-5 w-5 text-primary" /> : <Lock className="h-5 w-5 text-muted-foreground" />}
+                  <div>
+                    <p className="font-medium">
+                      {isPublic ? "Public Folder" : "Private Folder"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {isPublic 
+                        ? "Anyone can access this folder with the password" 
+                        : "Only you can access this folder"
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                />
+              </div>
 
               <div className="space-y-2 pt-4">
                 <Label>Upload Files</Label>

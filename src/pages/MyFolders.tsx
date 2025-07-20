@@ -5,7 +5,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Folder, Search, FolderPlus, Eye, Copy, Share2 } from 'lucide-react';
+import { Folder, Search, FolderPlus, Eye, Copy, Share2, Lock, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,7 @@ interface FolderWithFiles {
   password: string;
   created_at: string;
   created_by: string;
+  is_public: boolean;
   fileCount: number;
 }
 
@@ -39,6 +40,7 @@ const MyFolders = () => {
             password,
             created_at,
             created_by,
+            is_public,
             files!inner(id)
           `)
           .eq('created_by', user.id)
@@ -52,6 +54,7 @@ const MyFolders = () => {
           password: folder.password,
           created_at: folder.created_at,
           created_by: folder.created_by,
+          is_public: folder.is_public,
           fileCount: folder.files?.length || 0
         })) || [];
 
@@ -154,6 +157,13 @@ const MyFolders = () => {
                       <Folder className="h-5 w-5 flex-shrink-0" />
                       <span className="truncate">{folder.name}</span>
                     </CardTitle>
+                    <div className="flex items-center gap-1" title={folder.is_public ? "Public folder" : "Private folder"}>
+                      {folder.is_public ? (
+                        <Globe className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
                   <CardDescription>
                     Created on {formatDate(folder.created_at)}

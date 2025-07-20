@@ -28,10 +28,11 @@ const AccessFolder = () => {
     setIsLoading(true);
     
     try {
-      // Find folder by name and check password
+      // Find public folder by name and check password
       const { data: folders, error } = await supabase
         .from('folders')
-        .select('id, name, password')
+        .select('id, name, password, is_public')
+        .eq('is_public', true)
         .ilike('name', folderData.name);
 
       if (error) throw error;
@@ -69,7 +70,7 @@ const AccessFolder = () => {
         
         <h1 className="text-3xl font-bold text-center mb-2">Access Folder</h1>
         <p className="text-muted-foreground text-center mb-8">
-          Enter the folder name and password to access shared files
+          Enter the folder name and password to access public shared folders
         </p>
         
         <Card>
