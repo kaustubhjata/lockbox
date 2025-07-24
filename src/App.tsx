@@ -17,7 +17,7 @@ import CreateFolder from "./pages/CreateFolder";
 import MyFolders from "./pages/MyFolders";
 import AccessFolder from "./pages/AccessFolder";
 import FolderView from "./pages/FolderView";
-import Chat from "./pages/Chat";
+
 
 const queryClient = new QueryClient();
 
@@ -58,11 +58,6 @@ const App = () => (
               <Route path="/folder/:folderId" element={
                 <ProtectedRoute>
                   <FolderView />
-                </ProtectedRoute>
-              } />
-              <Route path="/chat" element={
-                <ProtectedRoute>
-                  <Chat />
                 </ProtectedRoute>
               } />
               
