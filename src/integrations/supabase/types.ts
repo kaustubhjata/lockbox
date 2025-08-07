@@ -10,15 +10,17 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
       files: {
         Row: {
           created_at: string
+          encrypted_data: string | null
           folder_id: string
           id: string
+          is_encrypted: boolean | null
           name: string
           size: number
           storage_path: string
@@ -26,8 +28,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          encrypted_data?: string | null
           folder_id: string
           id?: string
+          is_encrypted?: boolean | null
           name: string
           size: number
           storage_path: string
@@ -35,8 +39,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          encrypted_data?: string | null
           folder_id?: string
           id?: string
+          is_encrypted?: boolean | null
           name?: string
           size?: number
           storage_path?: string
@@ -126,12 +132,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      decrypt_folder_data: {
-        Args: { encrypted_data: string; folder_password: string }
+      decrypt_file_data: {
+        Args: { encrypted_data: string; encryption_key: string }
         Returns: string
       }
-      encrypt_folder_data: {
-        Args: { data: string; folder_password: string }
+      decrypt_folder_password: {
+        Args: { encrypted_password: string; salt: string }
+        Returns: string
+      }
+      encrypt_file_data: {
+        Args: { data: string; encryption_key: string }
+        Returns: string
+      }
+      encrypt_folder_password: {
+        Args: { password: string; salt: string }
         Returns: string
       }
     }
