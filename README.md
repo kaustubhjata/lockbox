@@ -1,18 +1,8 @@
-# Welcome to your Lovable project
+# Welcome to the Project
 
 ## Project info
-
-**URL**: https://lovable.dev/projects/43222a40-8764-4b6d-b753-865a6b082f81
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/43222a40-8764-4b6d-b753-865a6b082f81) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+This is a vibe-coding project that uses Lovable, and Supabase's storage and Auth APIs.
+Store you rdata and share it as you want.
 
 **Use your preferred IDE**
 
